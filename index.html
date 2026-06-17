@@ -411,6 +411,9 @@ import * as THREE from 'https://cdnjs.cloudflare.com/ajax/libs/three.js/0.160.0/
   // ---- HIDDEN VIDEO ELEMENT ----
   const video = document.createElement('video');
   video.muted = true; video.loop = true; video.playsInline = true;
+  video.crossOrigin = 'anonymous';   // REQUIRED: lets the cross-origin COS video be sampled
+                                     // onto the tunnel canvas without tainting it (needs the
+                                     // bucket's CORS rule, which you already configured).
   video.style.cssText = 'position:fixed;left:0;top:0;width:2px;height:2px;opacity:0.001;pointer-events:none;z-index:0;';
   document.body.appendChild(video);
   let useVideo = 0;
@@ -449,8 +452,14 @@ import * as THREE from 'https://cdnjs.cloudflare.com/ajax/libs/three.js/0.160.0/
     }
   }
 
-  // Try loading video files from the same folder
-  const VIDEO_CANDIDATES = ['video.mp4','video.webm','video.m4v','clip.mp4','movie.mp4','video.mov'];
+  // Load the tunnel video from Tencent COS (full URLs — this module block is separate
+  // from the game block, so it can't use the shared ASSET_BASE helper). If you rename the
+  // video or move it, edit these URLs. The bucket base must match the game's ASSET_BASE.
+  const COS_BASE = 'https://signal-1444527363.cos.ap-shanghai.myqcloud.com/';
+  const VIDEO_CANDIDATES = [
+    COS_BASE+'video.mp4', COS_BASE+'video.webm', COS_BASE+'video.m4v',
+    COS_BASE+'clip.mp4', COS_BASE+'movie.mp4', COS_BASE+'video.mov'
+  ];
   let _vidTry = 0;
   function loadVideo(){
     if(_vidTry >= VIDEO_CANDIDATES.length) return;
